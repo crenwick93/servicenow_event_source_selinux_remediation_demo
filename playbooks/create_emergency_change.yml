@@ -27,28 +27,8 @@
     alert_fingerprint: ""
 
   tasks:
-    - name: Create incident for the emergency change
-      servicenow.itsm.incident:
-        state: new
-        short_description: "{{ incident_short_description }}"
-        description: "{{ incident_description }}"
-        impact: "{{ incident_impact }}"
-        urgency: "{{ incident_urgency }}"
-        other: "{{ {'assignment_group': (incident_assignment_group | default(change_assignment_group)), 'correlation_id': (alert_fingerprint | default(''))} }}"
-      register: incident
-
-    - name: Show incident identifiers
-      ansible.builtin.debug:
-        msg:
-          - "Incident number: {{ incident.record.number | default('unknown') }}"
-          - "Incident sys_id: {{ incident.record.sys_id | default('unknown') }}"
-
     - name: Create emergency change request
       servicenow.itsm.change_request:
-        instance:
-          host: "{{ lookup('env', 'SN_HOST') }}"
-          username: "{{ lookup('env', 'SN_USERNAME') }}"
-          password: "{{ lookup('env', 'SN_PASSWORD') }}"
         state: new
         type: emergency
         short_description: "{{ change_short_description }}"
@@ -56,15 +36,15 @@
         impact: "{{ change_impact }}"
         urgency: "{{ change_urgency }}"
         assignment_group: "{{ change_assignment_group | default(omit) }}"
-        other: "{{ {'parent': incident.record.sys_id, 'correlation_id': (alert_fingerprint | default('')), 'correlation_display': incident.record.number} }}"
+        other: "{{ {
+            'parent': (incident_sys_id | default(omit)),
+            'correlation_id': (alert_fingerprint | default(omit)),
+            'correlation_display': (incident_number | default(omit))
+          } }}"
       register: change
 
     - name: Move change to Authorize and request approval
       servicenow.itsm.change_request:
-        instance:
-          host: "{{ lookup('env', 'SN_HOST') }}"
-          username: "{{ lookup('env', 'SN_USERNAME') }}"
-          password: "{{ lookup('env', 'SN_PASSWORD') }}"
         number: "{{ change.record.number }}"
         state: authorize
         assignment_group: "{{ change_assignment_group }}"
