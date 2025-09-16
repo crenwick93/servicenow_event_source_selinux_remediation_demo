@@ -6,19 +6,10 @@
     - servicenow.itsm.records:
         table: incident
         interval: 10
-        # Query explanation:
-        # - assignment_group=...            limit to your team
-        # - sys_mod_count=0                 creation-only: never updated after insert
-        # - sys_created_on=sys_updated_on   further confirms it's the first version
-        # - active=true ^ stateNOT IN6,7    ignore resolved/closed incidents
-        # - ORDERBYsys_created_on ^ sys_id  stable ascending ordering for clean cursoring
-        # Caveat: if post-insert business rules/SLA updates happen before the next poll,
-        #         sys_mod_count becomes 1 and this source will skip that record. For demos,
-        #         keep the interval small if you want to catch the initial insert.
+        # Filter ONLY by assignment group; newest first to avoid the “oldest page first” trap
         sysparm_query: >
           assignment_group=91b12d5b53c72610a33138f0a0490e52^
-          sys_created_on=sys_updated_on^
-          ORDERBYsys_created_on^ORDERBYsys_id
+          ORDERBYDESCsys_updated_on^ORDERBYDESCsys_id
       filters:
         - ansible.eda.json_filter:
         - ansible.eda.normalize_keys:
@@ -106,3 +97,4 @@
               target_host: "{{ event.target_host | default('') }}"
               environment: "{{ event.environment | default('') }}"
               incident_sys_id: "{{ event.sys_id | default('') }}"
+
