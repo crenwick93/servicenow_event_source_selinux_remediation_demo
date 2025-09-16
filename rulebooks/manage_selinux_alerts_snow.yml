@@ -16,7 +16,7 @@
   rules:
     # 0) Debug helper: print the whole event for testing
     - name: Debug incoming incident event
-      condition: "'environment' not in event.payload"
+      condition: event.meta is defined
       action:
         debug:
           msg: "{{ event.payload | to_json }}"
