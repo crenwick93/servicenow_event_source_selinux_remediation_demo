@@ -16,7 +16,7 @@
   rules:
     # 0) Debug helper: print the whole event for testing
     - name: Show raw event
-      condition: event.environment is not defined
+      condition: "(event.environment | default(None)) is none"
       action:
         debug:
           msg: "No environment in this event"
