@@ -1,0 +1,31 @@
+---
+- name: Launch the implementation job template and wait
+  hosts: localhost
+  gather_facts: false
+  # Expects `implementation_payload` to be provided at runtime, e.g.
+  # implementation_payload:
+  #   job_template: "Implementation JT"
+  #   organization: "Default"
+  #   extra_vars:
+  #     target_host: "..."
+  #     incident_sys_id: "..."
+
+  tasks:
+    - name: Launch job template
+      awx.awx.job_launch:
+        job_template: "{{ implementation_payload.job_template }}"
+        organization: "{{ implementation_payload.organization | default(omit) }}"
+        extra_vars: "{{ implementation_payload.extra_vars | default({}) }}"
+      register: launch
+
+    - name: Wait for job to finish
+      awx.awx.job_wait:
+        job_id: "{{ launch.id }}"
+        timeout: 1800               # 30 minutes; adjust as needed
+        interval: 2
+      register: job_result
+
+    - name: Fail play if the Controller job did not succeed
+      when: job_result.status != 'successful'
+      fail:
+        msg: "Job {{ launch.id }} finished with status {{ job_result.status }}"
