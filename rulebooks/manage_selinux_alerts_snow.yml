@@ -40,6 +40,10 @@
         run_workflow_template:
           name: non_prod_servicenow_auto_remediate_selinux_workflow
           organization: Demo3
+          throttle:
+            once_within: 10 minutes
+            group_by_attributes:
+              - sys_id
           job_args:
             extra_vars:
               target_host: "{{ event.target_host }}"
@@ -59,6 +63,10 @@
         run_workflow_template:
           name: prod_servicenow_enrich_incident_workflow
           organization: Demo3
+          throttle:
+            once_within: 10 minutes
+            group_by_attributes:
+              - sys_id
           job_args:
             extra_vars:
               # Change Request fields
@@ -81,7 +89,7 @@
               fail_update: |
                   ########### EDA REMEDIATION STATUS UPDATE - FAIL #############
               work_notes: |
-                ########### EDA REMEDIATION STATUS UPDATE - Production incident - Approval Required - Change Request Raised #############
+                EDA REMEDIATION STATUS UPDATE - Production incident - Approval Required - Change Request Raised
 
               # Correlation to link incident and change
               alert_fingerprint: "{{ event.correlation_id | default('') }}"
