@@ -4,17 +4,17 @@
   become: false
   gather_facts: false
   vars:
-    implementation_plan_json: ""
+    implementation_plan: ""
   tasks:
-    - name: Ensure implementation_plan_json provided
+    - name: Ensure implementation_plan provided
       ansible.builtin.assert:
         that:
-          - (implementation_plan_json | string | trim) != ''
-        fail_msg: "implementation_plan_json is required"
+          - (implementation_plan | string | trim) != ''
+        fail_msg: "implementation_plan is required"
 
     - name: Parse implementation plan JSON
       ansible.builtin.set_fact:
-        implementation_plan: "{{ implementation_plan_json | from_json }}"
+        implementation_plan: "{{ implementation_plan | from_json }}"
 
     - name: Emit parsed implementation plan for EDA
       ansible.builtin.set_stats:
