@@ -72,7 +72,7 @@
       condition: event.environment is defined and event.environment == "Production"
       action:
         run_workflow_template:
-          name: prod_servicenow_enrich_incident_workflow
+          name: prod_servicenow_auto_remediate_selinux_workflow
           organization: Demo3
           throttle:
             once_within: 10 minutes
