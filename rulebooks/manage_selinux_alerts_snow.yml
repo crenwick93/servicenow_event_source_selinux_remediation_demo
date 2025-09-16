@@ -79,6 +79,7 @@
               change_urgency: high
               change_assignment_group: "Event Driven Ansible"
               implementation_job_template_name: "se_linux_remediation"
+              change_justification: "SELinux policy must be enforcement in production"
 
               # Incident fields for the playbook's pre-change incident
               success_update: |

@@ -14,6 +14,7 @@
     change_assigned_to: ""
     change_start: ""
     change_end: ""
+    change_justification: ""
 
     # Correlation/associations
     alert_fingerprint: ""
@@ -65,7 +66,7 @@
     - name: Update change with implementation plan JSON
       servicenow.itsm.change_request:
         number: "{{ change.record.number }}"
-        other: "{{ {'implementation_plan': (implementation_payload | to_json)} }}"
+        other: "{{ {'implementation_plan': (implementation_payload | to_json), 'justification': (change_justification | default(omit))} }}"
       tags:
         - create_change
 
