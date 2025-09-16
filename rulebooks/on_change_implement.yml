@@ -30,4 +30,3 @@
             - sys_id: {{ event.sys_id | default('') }}
             - parent_incident_sys_id: {{ event.parent | default('') }}
             - implementation_plan (raw): {{ event.implementation_plan | default('') }}
-            - implementation_plan.parsed: {{ (event.implementation_plan | default('') | from_json) if (event.implementation_plan is defined) else {} }}
