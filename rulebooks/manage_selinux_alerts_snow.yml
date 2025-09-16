@@ -1,0 +1,91 @@
+---
+- name: Monitor incidents in ServiceNow
+  hosts: all
+  execution_strategy: parallel
+  sources:
+    - servicenow.itsm.records:
+        table: incident
+        interval: 10
+        # Filter ONLY by assignment group; newest first to avoid the “oldest page first” trap
+        sysparm_query: >
+          assignment_group=91b12d5b53c72610a33138f0a0490e52^
+          ORDERBYDESCsys_updated_on^ORDERBYDESCsys_id
+      filters:
+        - ansible.eda.json_filter:
+        - ansible.eda.normalize_keys:
+  rules:
+    # 0) Debug helper: print the whole event for testing
+    - name: Debug incoming incident event
+      condition: event.payload.environment is not defined
+      action:
+        debug:
+          msg: The environment is not defined
+
+    # 1) Enrich incoming incidents with CMDB environment based on cmdb_ci. This is because there is no environment field in the incident table.
+    # - name: Enrich incident with CMDB environment - Get Environment information to act appropriately
+    #   throttle:
+    #     once_within: 5 minutes
+    #     group_by_attributes:
+    #       - payload.incident.correlation_id
+    #   condition: >
+    #     (event.payload.environment is none or event.payload.environment == "")
+    #   action:
+    #     run_job_template:
+    #       name: gather_machine_info
+    #       organization: Demo3
+    #       post_events: true
+    #       job_args:
+    #         extra_vars:
+    #           short_description: "{{ event.payload.incident.short_description }}"
+    #           description: "{{ event.payload.incident.description }}"
+    #           alert_fingerprint: "{{ event.payload.incident.correlation_id | default('') }}"
+    #           impact: 2
+    #           urgency: 3
+    #           cmdb_ci: "{{ event.payload.incident.cmdb_ci.value | default('') }}"
+
+    # # 2) Handle non-production incidents
+    # - name: Handle non-production incident
+    #   throttle:
+    #     once_within: 5 minutes
+    #     group_by_attributes:
+    #       - payload.incident.correlation_id
+    #   condition: >
+    #     event.payload.incident.assignment_group.display_value == "Event Driven Ansible" and
+    #     event.payload.environment is not none and
+    #     event.payload.environment not in ["prod", "production"]
+    #   action:
+    #     run_workflow_template:
+    #       name: non_prod_servicenow_auto_remediate_selinux_workflow
+    #       organization: Demo3
+    #       job_args:
+    #         extra_vars:
+    #           target_host: "{{ event.payload.incident.cmdb_ci.display_value | default('') }}"
+    #           short_description: "{{ event.payload.incident.short_description }}"
+    #           description: "{{ event.payload.incident.description }}"
+    #           instance: "{{ event.payload.incident.cmdb_ci.display_value | default('') }}"
+    #           alert_fingerprint: "{{ event.payload.incident.correlation_id | default('') }}"
+    #           impact: 2
+    #           urgency: 3
+
+    # # 3) Handle production incidents
+    # - name: Handle production incident
+    #   throttle:
+    #     once_within: 5 minutes
+    #     group_by_attributes:
+    #       - payload.incident.correlation_id
+    #   condition: >
+    #     event.payload.incident.assignment_group.display_value == "Event Driven Ansible" and
+    #     event.payload.environment in ["prod", "production"]
+    #   action:
+    #     run_workflow_template:
+    #       name: prod_servicenow_enrich_incident_workflow
+    #       organization: Demo3
+    #       job_args:
+    #         extra_vars:
+    #           target_host: "{{ event.payload.incident.cmdb_ci.display_value | default('') }}"
+    #           short_description: "{{ event.payload.incident.short_description }}"
+    #           description: "{{ event.payload.incident.description }}"
+    #           instance: "{{ event.payload.incident.cmdb_ci.display_value | default('') }}"
+    #           alert_fingerprint: "{{ event.payload.incident.correlation_id | default('') }}"
+    #           impact: 1
+    #           urgency: 1
