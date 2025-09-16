@@ -49,6 +49,8 @@
                 ########### EDA REMEDIATION STATUS UPDATE - SUCCESS #############
               fail_update: |
                 ########### EDA REMEDIATION STATUS UPDATE - FAIL #############
+              work_notes: |
+                ########### EDA REMEDIATION STATUS UPDATE - Attempting remediation #############
 
     # 3) Handle production incidents
     - name: Handle production incident
@@ -73,3 +75,5 @@
                 ########### EDA REMEDIATION STATUS UPDATE - SUCCESS #############
                 fail_update: |
                   ########### EDA REMEDIATION STATUS UPDATE - FAIL #############
+                work_notes: |
+                ########### EDA REMEDIATION STATUS UPDATE - Production incident - Approval Required - Change Request Raised #############
