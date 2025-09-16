@@ -15,11 +15,11 @@
         - ansible.eda.normalize_keys:
   rules:
     # 0) Debug helper: print the whole event for testing
-    - name: Show raw event
-      condition: "event.environment is defined"
-      action:
-        debug:
-          msg: "{{ event }}"
+    # - name: Show raw event
+    #   condition: "event.environment is defined"
+    #   action:
+    #     debug:
+    #       msg: "{{ event }}"
 
     # 1) Enrich incoming incidents with CMDB environment based on cmdb_ci. This is because there is no environment field in the incident table.
     - name: Enrich incident with CMDB environment - Get Environment information to act appropriately
@@ -33,49 +33,43 @@
             extra_vars:
               cmdb_ci: "{{ event.cmdb_ci| default('') }}"
 
-    # # 2) Handle non-production incidents
-    # - name: Handle non-production incident
-    #   throttle:
-    #     once_within: 5 minutes
-    #     group_by_attributes:
-    #       - payload.incident.correlation_id
-    #   condition: >
-    #     event.payload.incident.assignment_group.display_value == "Event Driven Ansible" and
-    #     event.payload.environment is not none and
-    #     event.payload.environment not in ["prod", "production"]
-    #   action:
-    #     run_workflow_template:
-    #       name: non_prod_servicenow_auto_remediate_selinux_workflow
-    #       organization: Demo3
-    #       job_args:
-    #         extra_vars:
-    #           target_host: "{{ event.payload.incident.cmdb_ci.display_value | default('') }}"
-    #           short_description: "{{ event.payload.incident.short_description }}"
-    #           description: "{{ event.payload.incident.description }}"
-    #           instance: "{{ event.payload.incident.cmdb_ci.display_value | default('') }}"
-    #           alert_fingerprint: "{{ event.payload.incident.correlation_id | default('') }}"
-    #           impact: 2
-    #           urgency: 3
+    # 2) Handle non-production incidents
+    - name: Handle non-production incident
+      condition: event.environment is defined and event.environment != "Production"
+      action:
+        run_workflow_template:
+          name: non_prod_servicenow_auto_remediate_selinux_workflow
+          organization: Demo3
+          job_args:
+            extra_vars:
+              target_host: "{{ event.target_host }}"
+              environment: "{{ event.environment }}"
+              sys_id: "{{ event.eda_event.sys_id }}"
+              success_update: |
+                ########### EDA REMEDIATION STATUS UPDATE - SUCCESS #############
+              fail_update: |
+                ########### EDA REMEDIATION STATUS UPDATE - FAIL #############
 
-    # # 3) Handle production incidents
-    # - name: Handle production incident
-    #   throttle:
-    #     once_within: 5 minutes
-    #     group_by_attributes:
-    #       - payload.incident.correlation_id
-    #   condition: >
-    #     event.payload.incident.assignment_group.display_value == "Event Driven Ansible" and
-    #     event.payload.environment in ["prod", "production"]
-    #   action:
-    #     run_workflow_template:
-    #       name: prod_servicenow_enrich_incident_workflow
-    #       organization: Demo3
-    #       job_args:
-    #         extra_vars:
-    #           target_host: "{{ event.payload.incident.cmdb_ci.display_value | default('') }}"
-    #           short_description: "{{ event.payload.incident.short_description }}"
-    #           description: "{{ event.payload.incident.description }}"
-    #           instance: "{{ event.payload.incident.cmdb_ci.display_value | default('') }}"
-    #           alert_fingerprint: "{{ event.payload.incident.correlation_id | default('') }}"
-    #           impact: 1
-    #           urgency: 1
+    # 3) Handle production incidents
+    - name: Handle production incident
+      throttle:
+        once_within: 5 minutes
+        group_by_attributes:
+          - payload.incident.correlation_id
+      condition: >
+        event.payload.incident.assignment_group.display_value == "Event Driven Ansible" and
+        event.payload.environment in ["prod", "production"]
+      action:
+        run_workflow_template:
+          name: prod_servicenow_enrich_incident_workflow
+          organization: Demo3
+          job_args:
+            job_args:
+              extra_vars:
+                target_host: "{{ event.target_host }}"
+                environment: "{{ event.environment }}"
+                sys_id: "{{ event.eda_event.sys_id }}"
+                success_update: |
+                ########### EDA REMEDIATION STATUS UPDATE - SUCCESS #############
+                fail_update: |
+                  ########### EDA REMEDIATION STATUS UPDATE - FAIL #############

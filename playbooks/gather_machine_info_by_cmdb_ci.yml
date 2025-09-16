@@ -29,9 +29,14 @@
       ansible.builtin.set_fact:
         ci_environment: "{{ ci_record.environment | default('') }}"
 
-    - name: Emit environment and original event back to rulebook
+    - name: Derive target host from CI
+      ansible.builtin.set_fact:
+        ci_target_host: "{{ ci_record.name | default(ci_record.display_name | default('')) }}"
+
+    - name: Emit environment, target host, and original event back to rulebook
       ansible.builtin.set_stats:
         data:
           environment: "{{ ci_environment }}"
+          target_host: "{{ ci_target_host }}"
           eda_event: "{{ ansible_eda.event | default({}) }}"
         aggregate: false
