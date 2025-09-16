@@ -15,12 +15,21 @@
         # - If you need labels for logging only, uncomment the line below.
         # display_value: true
   rules:
-    - name: Change moved to Implement
-      # - ServiceNow 'state' is a choice-list; in many instances '-1' maps to the label 'Implement'.
+    - name: Run corresponding remediation workflow
+      # - ServiceNow 'state' is a choice-list; in many instances '-1' maps to 'Implement'.
+      throttle:
+        once_within: 10 minutes
+        group_by_attributes:
+          - sys_id
       condition: event.state == '-1'
       action:
-        debug:
-          msg: |
-            Implement detected:
-            - number: {{ event.number }}
-            - work_start: {{ event.work_start }}
+        run_job_template:
+          # name: se_linux_remediation
+          name: "{{ event.implementation_plan.extra_vars.job_template }}"
+          organization: Demo3
+          job_args:
+            extra_vars:
+              change_number: "{{ event.number | default('') }}"
+              change_sys_id: "{{ event.sys_id | default('') }}"
+              incident_sys_id: "{{ event.parent | default('') }}"
+              target_host: "{{ event.implementation_plan.extra_vars.target_host | default('') }}"

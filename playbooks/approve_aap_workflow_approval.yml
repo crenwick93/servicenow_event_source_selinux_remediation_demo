@@ -16,7 +16,7 @@
     - name: Build approvals query string
       ansible.builtin.set_fact:
         approvals_query: >-
-          status=pending&workflow_job={{ lookup('env', 'WORKFLOW_JOB_ID') }}&order_by=-created&page_size=1
+          status=pending&source_workflow_job={{ lookup('env', 'WORKFLOW_JOB_ID') }}&order_by=-created&page_size=1
 
     - name: Find latest pending approval for this workflow run
       ansible.builtin.uri:

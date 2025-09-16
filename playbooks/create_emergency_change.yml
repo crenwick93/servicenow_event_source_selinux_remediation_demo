@@ -26,6 +26,11 @@
     # Alertmanager fingerprint to correlate incident and change
     alert_fingerprint: ""
 
+    # Implementation execution defaults (can be overridden by caller)
+    # implementation_job_template_name: "se_linux_remediation"
+    implementation_job_template_name: "{{ implementation_job_template_name }}"
+    implementation_job_template_org: "Demo3"
+
   tasks:
     - name: Create emergency change request
       servicenow.itsm.change_request:
@@ -42,6 +47,22 @@
             'correlation_display': (incident_number | default(omit))
           } }}"
       register: change
+
+    - name: Build implementation plan payload for downstream automation
+      ansible.builtin.set_fact:
+        implementation_payload:
+          job_template: "{{ implementation_job_template_name }}"
+          organization: "{{ implementation_job_template_org }}"
+          extra_vars:
+            target_host: "{{ target_host | default('') }}"
+            environment: "{{ environment | default('') }}"
+            incident_sys_id: "{{ incident_sys_id | default('') }}"
+            correlation_id: "{{ alert_fingerprint | default('') }}"
+
+    - name: Update change with implementation plan JSON
+      servicenow.itsm.change_request:
+        number: "{{ change.record.number }}"
+        other: "{{ {'implementation_plan': (implementation_payload | to_json)} }}"
 
     - name: Move change to Authorize and request approval
       servicenow.itsm.change_request:

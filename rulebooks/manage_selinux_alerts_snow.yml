@@ -61,7 +61,7 @@
       condition: event.environment is defined and event.environment == "Production"
       action:
         run_workflow_template:
-          name: prod_servicenow_auto_remediate_selinux_workflow
+          name: prod_raise_change
           organization: Demo3
           throttle:
             once_within: 10 minutes
@@ -82,6 +82,7 @@
               change_impact: high
               change_urgency: high
               change_assignment_group: "Event Driven Ansible"
+              implementation_job_template_name: "se_linux_remediation"
 
               # Incident fields for the playbook's pre-change incident
               success_update: |
