@@ -16,7 +16,7 @@
   rules:
     # 0) Debug helper: print the whole event for testing
     - name: Debug incoming incident event
-      condition: event.payload.environment is not defined
+      condition: event.meta is defined
       action:
         debug:
           msg: The environment is not defined
