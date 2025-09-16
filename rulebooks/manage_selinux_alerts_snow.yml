@@ -58,9 +58,7 @@
         once_within: 5 minutes
         group_by_attributes:
           - payload.incident.correlation_id
-      condition: >
-        event.payload.incident.assignment_group.display_value == "Event Driven Ansible" and
-        event.payload.environment in ["prod", "production"]
+      condition: event.environment is defined and event.environment == "Production"
       action:
         run_workflow_template:
           name: prod_servicenow_enrich_incident_workflow
