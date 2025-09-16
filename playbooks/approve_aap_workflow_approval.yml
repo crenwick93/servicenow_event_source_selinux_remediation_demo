@@ -21,7 +21,7 @@
     - name: Find latest pending approval for this workflow run
       ansible.builtin.uri:
         url: >-
-          {{ controller_base }}v2/workflow_approvals/?{{ approvals_query | regex_replace('\n\s*', '') }}
+          {{ controller_base }}/v2/workflow_approvals/?{{ approvals_query | regex_replace('\n\s*', '') }}
         method: GET
         url_username: "{{ lookup('env', 'CONTROLLER_USERNAME') }}"
         url_password: "{{ lookup('env', 'CONTROLLER_PASSWORD') }}"
@@ -44,7 +44,7 @@
     - name: Approve workflow approval
       ansible.builtin.uri:
         url: >-
-          {{ controller_base }}v2/workflow_approvals/{{ approval_id }}/approve/
+          {{ controller_base }}/v2/workflow_approvals/{{ approval_id }}/approve/
         method: POST
         url_username: "{{ lookup('env', 'CONTROLLER_USERNAME') }}"
         url_password: "{{ lookup('env', 'CONTROLLER_PASSWORD') }}"
