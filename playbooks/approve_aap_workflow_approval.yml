@@ -4,15 +4,47 @@
   become: false
   gather_facts: false
   vars:
-    approval_id: ""
     approval_comment: "Approved by automation"
   tasks:
+    - name: Build Controller base URL
+      ansible.builtin.set_fact:
+        controller_base: >-
+          {{ (lookup('env', 'CONTROLLER_HOST')
+              | regex_replace('^((?!https?://).+)$', 'https://\\1')
+              | regex_replace('/+$', '')) }}
+
+    - name: Build approvals query string
+      ansible.builtin.set_fact:
+        approvals_query: >-
+          status=pending&workflow_job={{ lookup('env', 'WORKFLOW_JOB_ID') }}&order_by=-created&page_size=1
+
+    - name: Find latest pending approval for this workflow run
+      ansible.builtin.uri:
+        url: >-
+          {{ controller_base }}/api/controller/v2/workflow_approvals/?{{ approvals_query | regex_replace('\n\s*', '') }}
+        method: GET
+        url_username: "{{ lookup('env', 'CONTROLLER_USERNAME') }}"
+        url_password: "{{ lookup('env', 'CONTROLLER_PASSWORD') }}"
+        force_basic_auth: true
+        return_content: true
+        validate_certs: "{{ (lookup('env', 'CONTROLLER_VERIFY_SSL') | default(true, true)) | bool }}"
+        timeout: "{{ (lookup('env', 'CONTROLLER_REQUEST_TIMEOUT') | default(30, true)) | int }}"
+      register: approvals
+
+    - name: Extract approval_id
+      ansible.builtin.set_fact:
+        approval_id: "{{ (approvals.json.results | default([]) | first).id | default('') }}"
+
+    - name: Fail if no matching pending approval found
+      ansible.builtin.fail:
+        msg: >-
+          No pending approval found for workflow {{ lookup('env', 'WORKFLOW_JOB_ID') }}
+      when: approval_id == ""
+
     - name: Approve workflow approval
       ansible.builtin.uri:
         url: >-
-          {{ (lookup('env', 'CONTROLLER_HOST')
-              | regex_replace('^((?!https?://).+)$', 'https://\\1'))
-          }}v2/workflow_approvals//{{ approval_id }}/approve/
+          {{ controller_base }}/api/controller/v2/workflow_approvals/{{ approval_id }}/approve/
         method: POST
         url_username: "{{ lookup('env', 'CONTROLLER_USERNAME') }}"
         url_password: "{{ lookup('env', 'CONTROLLER_PASSWORD') }}"
