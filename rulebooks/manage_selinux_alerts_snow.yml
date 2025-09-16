@@ -60,14 +60,32 @@
           name: prod_servicenow_enrich_incident_workflow
           organization: Demo3
           job_args:
-            job_args:
-              extra_vars:
-                target_host: "{{ event.target_host }}"
-                environment: "{{ event.environment }}"
-                incident_sys_id: "{{ event.sys_id }}"
-                success_update: |
+            extra_vars:
+              # Change Request fields
+              change_short_description: "Emergency change: Enforce SELinux on {{ event.target_host | default('unknown host') }}"
+              change_description: >
+                Automated emergency change created by EDA.
+                Incident: {{ event.incident_number | default('unknown') }}
+                Host: {{ event.target_host | default('unknown host') }}
+                Environment: {{ event.environment | default('unknown') }}
+                Original description: {{ event.description | default('') }}
+
+                When the change is approved, the SELinux policy will be enforced on the host uing Event Driven Ansible.
+              change_impact: high
+              change_urgency: high
+              change_assignment_group: "Event Driven Ansible"
+
+              # Incident fields for the playbook's pre-change incident
+              success_update: |
                 ########### EDA REMEDIATION STATUS UPDATE - SUCCESS #############
-                fail_update: |
+              fail_update: |
                   ########### EDA REMEDIATION STATUS UPDATE - FAIL #############
-                work_notes: |
+              work_notes: |
                 ########### EDA REMEDIATION STATUS UPDATE - Production incident - Approval Required - Change Request Raised #############
+
+              # Correlation to link incident and change
+              alert_fingerprint: "{{ event.correlation_id | default('') }}"
+              # Pass-through context for remediation
+              target_host: "{{ event.target_host | default('') }}"
+              environment: "{{ event.environment | default('') }}"
+              incident_sys_id: "{{ event.sys_id | default('') }}"

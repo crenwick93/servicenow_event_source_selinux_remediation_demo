@@ -39,4 +39,7 @@
           environment: "{{ ci_environment }}"
           target_host: "{{ ci_target_host }}"
           sys_id: "{{ ansible_eda.event.sys_id | default('') }}"
+          incident_number: "{{ ansible_eda.event.number | default('') }}"
+          description: "{{ ansible_eda.event.description | default('') }}"
+          correlation_id: "{{ ansible_eda.event.correlation_id | default('') }}"
         aggregate: false
