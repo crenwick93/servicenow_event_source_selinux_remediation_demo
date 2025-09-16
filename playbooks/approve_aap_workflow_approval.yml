@@ -12,7 +12,7 @@
         url: >-
           {{ (lookup('env', 'CONTROLLER_HOST')
               | regex_replace('^((?!https?://).+)$', 'https://\\1'))
-          }}/api/controller/v2/workflow_approvals/{{ approval_id }}/approve/
+          }}v2/workflow_approvals//{{ approval_id }}/approve/
         method: POST
         url_username: "{{ lookup('env', 'CONTROLLER_USERNAME') }}"
         url_password: "{{ lookup('env', 'CONTROLLER_PASSWORD') }}"
