@@ -23,13 +23,11 @@
           - sys_id
       condition: event.state == '-1'
       action:
-        run_job_template:
-          # name: se_linux_remediation
-          name: "{{ event.implementation_plan.extra_vars.job_template }}"
-          organization: Demo3
-          job_args:
-            extra_vars:
-              change_number: "{{ event.number | default('') }}"
-              change_sys_id: "{{ event.sys_id | default('') }}"
-              incident_sys_id: "{{ event.parent | default('') }}"
-              #target_host: "{{ event.implementation_plan.extra_vars.target_host | default('') }}"
+        debug:
+          msg: |
+            on_change_implement event:
+            - number: {{ event.number | default('') }}
+            - sys_id: {{ event.sys_id | default('') }}
+            - parent_incident_sys_id: {{ event.parent | default('') }}
+            - implementation_plan (raw): {{ event.implementation_plan | default('') }}
+            - implementation_plan.parsed: {{ (event.implementation_plan | default('') | from_json) if (event.implementation_plan is defined) else {} }}
