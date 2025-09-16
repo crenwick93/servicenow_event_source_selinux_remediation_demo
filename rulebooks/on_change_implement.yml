@@ -32,4 +32,4 @@
               change_number: "{{ event.number | default('') }}"
               change_sys_id: "{{ event.sys_id | default('') }}"
               incident_sys_id: "{{ event.parent | default('') }}"
-              target_host: "{{ event.implementation_plan.extra_vars.target_host | default('') }}"
+              #target_host: "{{ event.implementation_plan.extra_vars.target_host | default('') }}"
