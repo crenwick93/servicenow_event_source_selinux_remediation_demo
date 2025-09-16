@@ -44,7 +44,7 @@
             extra_vars:
               target_host: "{{ event.target_host }}"
               environment: "{{ event.environment }}"
-              sys_id: "{{ event.eda_event.sys_id }}"
+              sys_id: "{{ event.sys_id }}"
               success_update: |
                 ########### EDA REMEDIATION STATUS UPDATE - SUCCESS #############
               fail_update: |
@@ -68,7 +68,7 @@
               extra_vars:
                 target_host: "{{ event.target_host }}"
                 environment: "{{ event.environment }}"
-                sys_id: "{{ event.eda_event.sys_id }}"
+                sys_id: "{{ event.sys_id }}"
                 success_update: |
                 ########### EDA REMEDIATION STATUS UPDATE - SUCCESS #############
                 fail_update: |
