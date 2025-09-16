@@ -1,0 +1,97 @@
+---
+- name: Manage Service Now incidents
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    short_description: "EDA Demo incident"
+    description: "Incident created by EDA demo"
+    impact: 2
+    urgency: 2
+    work_notes: "Updated by EDA demo"
+    close_notes: "Issue automatically resolved by Event-Driven Ansible"
+    incident_sys_id: ""
+    alert_fingerprint: ""
+  tasks:
+    ################################################################################################
+    ##############################   CREATING INCIDENTS  ###########################################
+    - name: Initialize existing_inc when no correlation id provided
+      ansible.builtin.set_fact:
+        existing_inc:
+          records: []
+      when: (alert_fingerprint | default('')) | length == 0
+      tags:
+        - create_incident
+
+    - name: Prevent Duplicated incidents by looking up existing active (non-resolved) incident by correlation_id
+      servicenow.itsm.incident_info:
+        sysparm_query: "correlation_id={{ alert_fingerprint }}^active=true^incident_stateNOT IN6,7"
+      when: (alert_fingerprint | default('')) | length > 0
+      register: existing_inc
+      tags:
+        - create_incident
+
+    # Create ServiceNow incident and set incident_sys_id so it's accessible in workflow or rulebook
+    - name: Create a ServiceNow incident
+      servicenow.itsm.incident:
+        state: new
+        caller: "admin"
+        short_description: "{{ short_description }}"
+        description: "{{ description }}"
+        impact: "{{ impact }}"
+        urgency: "{{ urgency }}"
+        other:
+          correlation_id: "{{ alert_fingerprint | default(omit) }}"
+      register: create_incident
+      tags:
+        - create_incident
+      when: (existing_inc.records | default([])) | length == 0
+
+    - name: Set stats from existing incident
+      ansible.builtin.set_stats:
+        data:
+          incident_sys_id: "{{ existing_inc.records[0].sys_id }}"
+          eda_event: "{{ original_event | default({}) }}"
+      when: (existing_inc.records | default([])) | length > 0
+      tags:
+        - create_incident
+
+    - name: Set stats from created incident
+      ansible.builtin.set_stats:
+        data:
+          incident_sys_id: "{{ create_incident.record.sys_id }}"
+          eda_event: "{{ original_event | default({}) }}"
+      when: (existing_inc.records | default([])) | length == 0
+      tags:
+        - create_incident
+
+    ################################################################################################
+    ##############################   UPDATING INCIDENTS  ###########################################
+
+    # Update state and work notes on ServiceNow incident
+    - name: Update state and work notes on ServiceNow incident
+      servicenow.itsm.incident:
+        sys_id: "{{ incident_sys_id }}"
+        state: 2 # In Progress
+        other:
+          work_notes: "{{ work_notes }}"
+      tags:
+        - update_incident
+      register: update_incident
+
+    ################################################################################################
+    ##############################   RESOLVING INCIDENTS  ###########################################
+
+    # Resolve the ServiceNow incident with resolution information
+    - name: Resolve the ServiceNow incident
+      servicenow.itsm.incident:
+        sys_id: "{{ incident_sys_id }}"
+        state: 6  # 6 = Resolved
+        close_notes: >
+          {{ close_notes | default("Issue automatically resolved by Event-Driven Ansible") }}
+        close_code: "eda_resolved" # custom created close code (System Definition > Choice Lists) in SNOW
+        other:
+          resolved_by: "admin"
+      tags:
+        - resolve_incident
+      register: resolve_incident

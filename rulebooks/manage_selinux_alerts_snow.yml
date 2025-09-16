@@ -15,33 +15,28 @@
         - ansible.eda.normalize_keys:
   rules:
     # 0) Debug helper: print the whole event for testing
-    - name: Show raw event
-      condition: "event.meta is defined and event.environment is not defined"
-      action:
-        debug:
-          msg: "No environment in this event"
+    # - name: Show raw event
+    #   condition: "event.meta is defined and event.environment is not defined"
+    #   action:
+    #     debug:
+    #       msg: "No environment in this event"
 
     # 1) Enrich incoming incidents with CMDB environment based on cmdb_ci. This is because there is no environment field in the incident table.
-    # - name: Enrich incident with CMDB environment - Get Environment information to act appropriately
-    #   throttle:
-    #     once_within: 5 minutes
-    #     group_by_attributes:
-    #       - payload.incident.correlation_id
-    #   condition: >
-    #     (event.payload.environment is none or event.payload.environment == "")
-    #   action:
-    #     run_job_template:
-    #       name: gather_machine_info
-    #       organization: Demo3
-    #       post_events: true
-    #       job_args:
-    #         extra_vars:
-    #           short_description: "{{ event.payload.incident.short_description }}"
-    #           description: "{{ event.payload.incident.description }}"
-    #           alert_fingerprint: "{{ event.payload.incident.correlation_id | default('') }}"
-    #           impact: 2
-    #           urgency: 3
-    #           cmdb_ci: "{{ event.payload.incident.cmdb_ci.value | default('') }}"
+    - name: Enrich incident with CMDB environment - Get Environment information to act appropriately
+      throttle:
+        once_within: 5 minutes
+        group_by_attributes:
+          - payload.incident.correlation_id
+      condition: "event.meta is defined and event.environment is not defined"
+      action:
+        run_job_template:
+          name: gather_machine_info_by_cmdb_ci
+          organization: Demo3
+          post_events: true
+          job_args:
+            extra_vars:
+              cmdb_ci: "{{ event.cmdb_ci| default('') }}"
+              sys_id: "{{ event.sys_id | default('') }}"
 
     # # 2) Handle non-production incidents
     # - name: Handle non-production incident

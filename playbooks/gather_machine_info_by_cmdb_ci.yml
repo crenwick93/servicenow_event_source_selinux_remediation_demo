@@ -1,0 +1,37 @@
+---
+- name: Gather machine info from ServiceNow CMDB by CI sys_id
+  hosts: localhost
+  become: false
+  gather_facts: false
+  vars:
+    # Required input: CI sys_id coming from the rulebook/job launch
+    cmdb_ci: ""
+
+  tasks:
+    - name: Validate required input cmdb_ci
+      ansible.builtin.assert:
+        that:
+          - cmdb_ci is not none
+          - (cmdb_ci | string | trim) != ''
+        fail_msg: "Missing required variable: cmdb_ci (CI sys_id)"
+
+    - name: Query CMDB for CI by sys_id
+      servicenow.itsm.configuration_item_info:
+        sys_id: "{{ cmdb_ci }}"
+        sysparm_display_value: true
+      register: ci_info
+
+    - name: Extract CI record
+      ansible.builtin.set_fact:
+        ci_record: "{{ (ci_info.records | default([])) | first | default({}) }}"
+
+    - name: Derive environment from CI
+      ansible.builtin.set_fact:
+        ci_environment: "{{ ci_record.environment | default('') }}"
+
+    - name: Emit environment and original event back to rulebook
+      ansible.builtin.set_stats:
+        data:
+          environment: "{{ ci_environment }}"
+          eda_event: "{{ ansible_eda.event | default({}) }}"
+        aggregate: false
