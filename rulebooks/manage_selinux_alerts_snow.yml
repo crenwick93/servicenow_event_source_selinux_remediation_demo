@@ -36,7 +36,6 @@
           job_args:
             extra_vars:
               cmdb_ci: "{{ event.cmdb_ci| default('') }}"
-              sys_id: "{{ event.sys_id | default('') }}"
 
     # # 2) Handle non-production incidents
     # - name: Handle non-production incident
