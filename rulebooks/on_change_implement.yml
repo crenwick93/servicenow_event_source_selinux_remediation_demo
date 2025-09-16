@@ -23,7 +23,7 @@
           - sys_id
       condition: event.state == '-1'
       action:
-        run_job_template:
+        run_workflow_template:
           name: prod_run_implementation_plan
           organization: Demo3
           job_args:
