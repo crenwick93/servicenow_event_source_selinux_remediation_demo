@@ -2,14 +2,6 @@
 - name: Launch the implementation job template and wait
   hosts: localhost
   gather_facts: false
-  # Expects `implementation_payload` to be provided at runtime, e.g.
-  # implementation_payload:
-  #   job_template: "Implementation JT"
-  #   organization: "Default"
-  #   extra_vars:
-  #     target_host: "..."
-  #     incident_sys_id: "..."
-
   tasks:
     - name: Launch job template
       ansible.controller.job_launch:
