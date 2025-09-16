@@ -55,9 +55,7 @@
           organization: "{{ implementation_job_template_org }}"
           extra_vars:
             target_host: "{{ target_host | default('') }}"
-            environment: "{{ environment | default('') }}"
             incident_sys_id: "{{ incident_sys_id | default('') }}"
-            correlation_id: "{{ alert_fingerprint | default('') }}"
 
     - name: Update change with implementation plan JSON
       servicenow.itsm.change_request:
