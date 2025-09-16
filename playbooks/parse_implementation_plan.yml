@@ -6,18 +6,18 @@
   vars:
     implementation_plan: ""
   tasks:
-    - name: Ensure implementation_plan provided
+    - name: Ensure implementation plan is provided (string or dict)
       ansible.builtin.assert:
         that:
-          - (implementation_plan | string | trim) != ''
-        fail_msg: "implementation_plan is required"
+          - (implementation_plan is mapping) or ((implementation_plan | string | trim) != '')
+        fail_msg: "implementation_plan is required as JSON string or dict"
 
-    - name: Parse implementation plan JSON
+    - name: Parse or pass-through implementation plan
       ansible.builtin.set_fact:
-        implementation_plan: "{{ implementation_plan | from_json }}"
+        implementation_plan_parsed: "{{ implementation_plan if (implementation_plan is mapping) else (implementation_plan | from_json) }}"
 
     - name: Emit parsed implementation plan for EDA
       ansible.builtin.set_stats:
         data:
-          implementation_plan_json: "{{ implementation_plan }}"
+          implementation_plan_json: "{{ implementation_plan_parsed }}"
         aggregate: false
