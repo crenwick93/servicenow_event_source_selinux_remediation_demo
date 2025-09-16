@@ -24,12 +24,12 @@
       condition: event.state == '-1'
       action:
         run_job_template:
-          name: se_linux_remediation
+          name: prod_run_implementation_plan
           organization: Demo3
           job_args:
             extra_vars:
               # raw JSON; parse in the playbook using from_json
-              implementation_plan_json: "{{ event.implementation_plan | default('') }}"
-              change_number: "{{ event.number | default('') }}"
+              implementation_plan: "{{ event.implementation_plan | default('') }}"
+              # change_number: "{{ event.number | default('') }}"
               change_sys_id: "{{ event.sys_id | default('') }}"
               incident_sys_id: "{{ event.parent | default('') }}"

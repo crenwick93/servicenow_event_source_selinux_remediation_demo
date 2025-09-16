@@ -19,5 +19,5 @@
     - name: Emit parsed implementation plan for EDA
       ansible.builtin.set_stats:
         data:
-          implementation_plan: "{{ implementation_plan }}"
+          implementation_plan_json: "{{ implementation_plan }}"
         aggregate: false
