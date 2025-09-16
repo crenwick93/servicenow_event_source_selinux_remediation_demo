@@ -23,10 +23,13 @@
           - sys_id
       condition: event.state == '-1'
       action:
-        debug:
-          msg: |
-            on_change_implement event:
-            - number: {{ event.number | default('') }}
-            - sys_id: {{ event.sys_id | default('') }}
-            - parent_incident_sys_id: {{ event.parent | default('') }}
-            - implementation_plan (raw): {{ event.implementation_plan | default('') }}
+        run_job_template:
+          name: se_linux_remediation
+          organization: Demo3
+          job_args:
+            extra_vars:
+              # raw JSON; parse in the playbook using from_json
+              implementation_plan_json: "{{ event.implementation_plan | default('') }}"
+              change_number: "{{ event.number | default('') }}"
+              change_sys_id: "{{ event.sys_id | default('') }}"
+              incident_sys_id: "{{ event.parent | default('') }}"

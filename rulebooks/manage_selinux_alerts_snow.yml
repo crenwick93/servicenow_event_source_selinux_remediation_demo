@@ -24,6 +24,10 @@
     # 1) Enrich incoming incidents with CMDB environment based on cmdb_ci. This is because there is no environment field in the incident table.
     - name: Enrich incident with CMDB environment - Get Environment information to act appropriately
       condition: "event.meta is defined and event.environment is not defined"
+      throttle:
+        once_within: 10 minutes
+        group_by_attributes:
+          - sys_id
       action:
         run_job_template:
           name: gather_machine_info_by_cmdb_ci
@@ -40,10 +44,6 @@
         run_workflow_template:
           name: non_prod_servicenow_auto_remediate_selinux_workflow
           organization: Demo3
-          throttle:
-            once_within: 10 minutes
-            group_by_attributes:
-              - sys_id
           job_args:
             extra_vars:
               target_host: "{{ event.target_host }}"
@@ -63,10 +63,6 @@
         run_workflow_template:
           name: prod_raise_change
           organization: Demo3
-          throttle:
-            once_within: 10 minutes
-            group_by_attributes:
-              - sys_id
           job_args:
             extra_vars:
               # Change Request fields
