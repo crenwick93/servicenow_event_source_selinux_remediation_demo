@@ -17,9 +17,7 @@
         #         keep the interval small if you want to catch the initial insert.
         sysparm_query: >
           assignment_group=91b12d5b53c72610a33138f0a0490e52^
-          sys_mod_count=0^
           sys_created_on=sys_updated_on^
-          active=true^stateNOT IN6,7^
           ORDERBYsys_created_on^ORDERBYsys_id
       filters:
         - ansible.eda.json_filter:
