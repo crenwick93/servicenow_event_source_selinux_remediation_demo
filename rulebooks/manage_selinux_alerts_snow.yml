@@ -16,10 +16,10 @@
   rules:
     # 0) Debug helper: print the whole event for testing
     - name: Show raw event
-      condition: event.meta is defined
+      condition: "'environment' not in event"
       action:
         debug:
-          msg: "{{ event }}"
+          msg: "No environment in this event"
 
     # 1) Enrich incoming incidents with CMDB environment based on cmdb_ci. This is because there is no environment field in the incident table.
     # - name: Enrich incident with CMDB environment - Get Environment information to act appropriately
