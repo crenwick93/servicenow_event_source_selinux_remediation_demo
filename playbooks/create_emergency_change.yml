@@ -75,3 +75,9 @@
         msg:
           - "Change number: {{ change.record.number | default('unknown') }}"
           - "Change sys_id: {{ change.record.sys_id | default('unknown') }}"
+
+    - name: Emit identifiers for downstream workflow nodes
+      ansible.builtin.set_stats:
+        data:
+          change_number: "{{ change.record.number | default('') }}"
+        aggregate: false
