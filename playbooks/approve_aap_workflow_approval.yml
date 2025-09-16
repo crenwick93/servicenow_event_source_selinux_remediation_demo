@@ -1,0 +1,26 @@
+---
+- name: Approve AAP workflow approval
+  hosts: localhost
+  become: false
+  gather_facts: false
+  vars:
+    approval_id: ""
+    approval_comment: "Approved by automation"
+  tasks:
+    - name: Approve workflow approval
+      ansible.builtin.uri:
+        url: >-
+          {{ (lookup('env', 'CONTROLLER_HOST')
+              | regex_replace('^((?!https?://).+)$', 'https://\\1'))
+          }}/api/controller/v2/workflow_approvals/{{ approval_id }}/approve/
+        method: POST
+        url_username: "{{ lookup('env', 'CONTROLLER_USERNAME') }}"
+        url_password: "{{ lookup('env', 'CONTROLLER_PASSWORD') }}"
+        force_basic_auth: true
+        headers:
+          Content-Type: application/json
+        body: "{{ {'comment': approval_comment} | to_json }}"
+        status_code: [200, 201, 202, 204]
+        return_content: true
+        validate_certs: "{{ (lookup('env', 'CONTROLLER_VERIFY_SSL') | default(true, true)) | bool }}"
+        timeout: "{{ (lookup('env', 'CONTROLLER_REQUEST_TIMEOUT') | default(30, true)) | int }}"
