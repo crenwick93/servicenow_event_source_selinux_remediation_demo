@@ -15,11 +15,11 @@
         - ansible.eda.normalize_keys:
   rules:
     # 0) Debug helper: print the whole event for testing
-    # - name: Show raw event
-    #   condition: "event.meta is defined and event.environment is not defined"
-    #   action:
-    #     debug:
-    #       msg: "No environment in this event"
+    - name: Show raw event
+      condition: "event.environment is defined"
+      action:
+        debug:
+          msg: "{{ event }}"
 
     # 1) Enrich incoming incidents with CMDB environment based on cmdb_ci. This is because there is no environment field in the incident table.
     - name: Enrich incident with CMDB environment - Get Environment information to act appropriately
